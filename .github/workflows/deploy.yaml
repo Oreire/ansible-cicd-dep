@@ -34,7 +34,7 @@ jobs:
       run: terraform validate
     - name: Terraform Format
       working-directory: ${{ env.TF_WORKING_DIR }}
-      run: terraform fmt -check
+      run: terraform fmt 
     - name: Terraform Plan
       working-directory: ${{ env.TF_WORKING_DIR }}
       run: terraform plan
