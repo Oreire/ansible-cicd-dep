@@ -2,6 +2,12 @@ provider "aws" {
   region = var.aws_region
 }
 
+resource "null_resource" "prepare_ansible_dir" {
+  provisioner "local-exec" {
+    command = "mkdir -p ../ansible"
+  }
+}
+
 resource "aws_instance" "web" {
   ami           = var.ami_id
   instance_type = var.instance_type
