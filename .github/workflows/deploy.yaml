@@ -29,7 +29,7 @@ jobs:
 
     - name: Terraform Format Check
       working-directory: ${{ env.TF_WORKING_DIR }}
-      run: terraform fmt -check
+      run: terraform fmt
 
     - name: Terraform Init
       working-directory: ${{ env.TF_WORKING_DIR }}
