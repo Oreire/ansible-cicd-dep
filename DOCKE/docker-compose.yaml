@@ -1,0 +1,13 @@
+version: '3'
+services:
+  web:
+    build: ./app
+    ports:
+      - "80:80"
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: securepass
+

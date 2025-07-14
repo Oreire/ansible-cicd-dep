@@ -1,0 +1,21 @@
+- hosts: tag_Name_DevOpsEC2
+  become: true
+  tasks:
+    - name: Install Docker & Docker Compose
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker.io
+        - docker-compose
+
+    - name: Copy Compose File
+      copy:
+        src: ../DOCKE/docker-compose.yml
+        dest: /home/ubuntu/docker-compose.yml
+
+    - name: Deploy Application
+      command: docker-compose up -d
+      args:
+        chdir: /home/ubuntu
+
