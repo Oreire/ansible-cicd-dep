@@ -24,29 +24,34 @@ resource "aws_instance" "web" {
 
 resource "aws_security_group" "web_sg" {
   name        = "web_sg"
-  description = "Allow HTTP and SSH traffic"
-  #vpc_id      = var.vpc_id
+  description = "Allow controlled HTTP and SSH access"
 
   ingress {
+    description = "SSH access for trusted admin"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["YOUR_TRUSTED_IP/32"]
+    cidr_blocks = ["192.0.2.0/32"] # Reserved for documentation/example; use real admin IP in production
   }
 
   ingress {
+    description = "HTTP access from trusted subnet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["192.168.1.0/24"]
+    cidr_blocks = ["192.168.1.0/24"] # Replace with real public-facing CIDR if needed
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  #tags = var.tags
+  tags = {
+    Name        = "web_sg"
+    Environment = "Dev"
+  }
 }
