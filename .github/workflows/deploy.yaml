@@ -14,56 +14,75 @@ jobs:
       ANSIBLE_DIR: ./ANSIB
 
     steps:
-    - name: Checkout repo
+    - name: ✅ Checkout repo
       uses: actions/checkout@v3
 
-    - name: Configure AWS Credentials
+    - name: 🔐 Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup Terraform
+    - name: 🔧 Setup Terraform
       uses: hashicorp/setup-terraform@v2
 
-    - name: Terraform Format Check
+    - name: 📐 Terraform Format Check
       working-directory: ${{ env.TF_WORKING_DIR }}
-      run: terraform fmt
+      run: terraform fmt -check
 
-    - name: Terraform Init
+    - name: 🛠️ Terraform Init
       working-directory: ${{ env.TF_WORKING_DIR }}
       run: terraform init
 
-    - name: Terraform Validate
+    - name: 🔎 Terraform Validate
       working-directory: ${{ env.TF_WORKING_DIR }}
       run: terraform validate
 
-    - name: Terraform Plan
+    - name: 📊 Terraform Plan
       working-directory: ${{ env.TF_WORKING_DIR }}
       run: terraform plan
 
-    - name: Terraform Apply
+    - name: 🚀 Terraform Apply
       working-directory: ${{ env.TF_WORKING_DIR }}
       run: terraform apply -auto-approve
 
-    - name: Configure SSH Access
+    - name: 📤 Capture Terraform Outputs
+      id: tf_outputs
+      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: |
+        terraform output -json > tf_outputs.json
+
+    - name: 🔑 Inject SSH Key
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.AWS_EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
-    - name: Install Python & Ansible Dependencies
+    - name: 🧰 Install Python, Ansible & Plugins
       run: |
         sudo apt-get update
         sudo apt-get install -y python3-pip ansible
         pip3 install boto boto3 botocore
         ansible-galaxy collection install amazon.aws
 
-    - name: Run Ansible Playbook Using Dynamic Inventory
+    - name: 🗂️ Create Ansible Config (ansible.cfg)
       working-directory: ${{ env.ANSIBLE_DIR }}
-      env:
-        ANSIBLE_INVENTORY_ENABLED: amazon.aws.aws_ec2
       run: |
-        ansible-playbook -i inventory/aws_ec2.yml infraconfig.yaml --private-key ~/.ssh/id_rsa
+        echo "[defaults]" > ansible.cfg
+        echo "inventory = inventory/aws_ec2.yml" >> ansible.cfg
+        echo "private_key_file = ~/.ssh/id_rsa" >> ansible.cfg
+        echo "host_key_checking = False" >> ansible.cfg
+        echo "gathering = smart" >> ansible.cfg
+        echo "[inventory]" >> ansible.cfg
+        echo "enabled = amazon.aws.aws_ec2" >> ansible.cfg
+
+    - name: 🧪 Run Ansible Playbook with Dynamic Inventory
+      working-directory: ${{ env.ANSIBLE_DIR }}
+      run: |
+        ansible-playbook playbook.yaml
+
+    - name: ✅ Fail Fast Validation
+      if: failure()
+      run: echo "❌ Workflow failed. Investigate logs above."
 
