@@ -4,7 +4,7 @@ terraform {
         key            = "dev/terraform.tfstate"
         region         = "eu-west-2"
         encrypt        = true
-        versioning     = true
+        #versioning     = true
         
     }
 }
