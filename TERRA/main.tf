@@ -22,8 +22,8 @@ resource "aws_instance" "web" {
   depends_on = [null_resource.prepare_ansible_dir]
 }
 
-resource "aws_security_group" "web_sg" {
-  name        = "web_sg"
+resource "aws_security_group" "ansible_sg" {
+  name        = "ansible_sg"
   description = "Allow controlled HTTP and SSH access"
 
   ingress {
@@ -51,7 +51,7 @@ resource "aws_security_group" "web_sg" {
   }
 
   tags = {
-    Name        = "web_sg"
+    Name        = "ansible_sg"
     Environment = "Dev"
   }
 }

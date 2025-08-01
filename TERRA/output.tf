@@ -9,5 +9,5 @@ output "instance_id" {
 }
 output "security_group_id" {
   description = "ID of the security group for the EC2 instance"
-  value       = aws_security_group.web_sg.id
+  value       = aws_security_group.ansible_sg.id
 }
