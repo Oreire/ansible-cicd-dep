@@ -1,16 +1,14 @@
-plugin: aws_ec2
+plugin: amazon.aws.aws_ec2
 regions:
   - eu-west-2
 
 filters:
   tag:Name: DevOpsEC2
 
-hostnames:
-  - ip-address
-
 keyed_groups:
   - key: tags.Name
-    prefix: tag
+    prefix: ec2
 
-strict: False
-
+hostnames:
+  - ip-address
+strict: false  # Allow fallback groups for broader discovery

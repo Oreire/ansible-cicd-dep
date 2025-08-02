@@ -67,7 +67,7 @@ jobs:
         pipx inject ansible-core boto3 botocore
 
         ansible-galaxy collection install amazon.aws
-        ansible-galaxy collection install community.general
+        
 
         # validate plugins
     
@@ -90,6 +90,9 @@ jobs:
 
     - name: 🧪 Run Ansible Playbook with Dynamic Inventory
       working-directory: ${{ env.ANSIBLE_DIR }}
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         echo "Running Ansible Playbook..."
         ansible-playbook -i aws_ec2.yaml playbook.yaml
