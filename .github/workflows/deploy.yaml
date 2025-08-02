@@ -30,7 +30,7 @@ jobs:
     - name: 📂 Terraform Initialisation
       run: terraform init
       working-directory: ${{ env.TF_WORKING_DIR }}
-      
+
 
     - name: 🧹 Terraform Format Check
       run: terraform fmt 
@@ -52,10 +52,15 @@ jobs:
       run: terraform output -json
       working-directory: ${{ env.TF_WORKING_DIR }}
 
+    
     - name: 🔑 Inject SSH Key
-      run: echo "$SSH_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
       env:
         SSH_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+
 
     - name: 🐍 Install Python, Ansible & Collections
       run: |
