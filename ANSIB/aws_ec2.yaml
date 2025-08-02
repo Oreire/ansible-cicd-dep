@@ -8,7 +8,10 @@ filters:
 keyed_groups:
   - key: tags.Name
     prefix: tag
+  - key: tags.Deployment
+    prefix: env
 
 hostnames:
   - ip-address
-strict: false  # Allow fallback groups for broader discovery
+
+strict: false  # Enables broader discovery even if filters yield no results

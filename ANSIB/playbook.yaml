@@ -1,7 +1,14 @@
 ---
-- hosts: DevOpsEC2
+- name: Resilient Deployment Play
+  hosts: "{{ lookup('ansible.utils.group_names') | select('match', '^tag_Name_DevOpsEC2$') | list | default(['all']) }}"
   become: true
+  gather_facts: true
+
   tasks:
+    - name: Debug matched inventory hostnames
+      debug:
+        var: inventory_hostname
+
     - name: Install Docker & Docker Compose
       apt:
         name: "{{ item }}"
@@ -19,4 +26,3 @@
       command: docker-compose up -d
       args:
         chdir: /home/ubuntu
-
