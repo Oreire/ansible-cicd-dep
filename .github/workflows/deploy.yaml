@@ -64,6 +64,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y python3-pip ansible
         pip3 install boto boto3 botocore
+        pipx inject ansible-core boto3 botocore
+
         ansible-galaxy collection install amazon.aws
 
     - name: 🗂️ Create Ansible Config (ansible.cfg)
@@ -81,7 +83,7 @@ jobs:
       working-directory: ${{ env.ANSIBLE_DIR }}
       run: |
         echo "Running Ansible Playbook..."
-        ansible-playbook -i aws_ec2.yaml playbook.yaml
+        ansible-playbook -i aws_ec2.yaml --inventory-plugin aws_ec2 playbook.yaml
 
         # Uncomment the following lines to capture and display the playbook output
         # echo "Ansible Playbook Output:"
