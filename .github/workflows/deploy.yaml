@@ -14,6 +14,8 @@ jobs:
       ANSIBLE_DIR: ./ANSIB
       AWS_DEFAULT_REGION: eu-west-2
       ANSIBLE_COLLECTIONS_PATH: /home/runner/.ansible/collections:/usr/share/ansible/collections
+      ANSIBLE_HOST_KEY_CHECKING: false
+      ANSIBLE_INVENTORY: aws_ec2.yaml
       ANSIBLE_CONFIG: ./ansible.cfg
 
     steps:

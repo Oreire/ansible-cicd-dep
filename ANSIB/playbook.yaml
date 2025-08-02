@@ -1,6 +1,6 @@
 ---
 - name: Resilient Deployment Play
-  hosts: "{{ lookup('ansible.utils.group_names') | select('match', '^tag_Name_DevOpsEC2$') | list | default(['all']) }}"
+  hosts: "{{ group_names') | select('match', '^tag_Name_DevOpsEC2$') | list | default(['all']) }}"
   become: true
   gather_facts: true
 
