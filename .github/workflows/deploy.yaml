@@ -51,7 +51,7 @@ jobs:
       id: tfoutputs
       run: terraform -chdir=${{ env.TF_WORKING_DIR }} output -json > outputs.json
 
-    - name: 🔑 Inject SSH Key
+    - name: 🔑 Set up SSH Key
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_KEY" > ~/.ssh/id_rsa
