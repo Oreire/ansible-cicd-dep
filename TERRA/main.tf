@@ -17,11 +17,14 @@ resource "aws_instance" "web" {
   provisioner "local-exec" {
   command = "mkdir -p ../ansible && echo ${self.public_ip} > ../ansible/hosts.txt"
 }
-
+tags = {
+    Name        = "ansible-web-server"
+    Environment = "Dev"
+  }
   depends_on = [null_resource.prepare_ansible_dir]
 }
 
-resource "aws_security_group" "ansible_sg1" {
+resource "aws_security_group" "ansible_sg2" {
   name        = "ansible_sg"
   description = "Allow controlled HTTP and SSH access"
 
@@ -50,7 +53,7 @@ resource "aws_security_group" "ansible_sg1" {
   }
 
   tags = {
-    Name        = "ansible_sg1"
+    Name        = "ansible_sg2"
     Environment = "Dev"
   }
 }
