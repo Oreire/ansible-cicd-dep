@@ -63,10 +63,18 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y python3-pip ansible
-        pip3 install boto boto3 botocore
+        pip3 install boto3 botocore
         pipx inject ansible-core boto3 botocore
 
         ansible-galaxy collection install amazon.aws
+        ansible-galaxy collection install community.general
+
+        # validate plugins
+    - name: 📦 Validate Ansible Collections
+      run: |
+        ansible-galaxy collection list | grep ansible.builtin
+        ansible-galaxy collection list | grep community.general
+        ansible-galaxy collection list | grep amazon.aws
 
     - name: 🗂️ Create Ansible Config (ansible.cfg)
       working-directory: ${{ env.ANSIBLE_DIR }}
