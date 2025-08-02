@@ -12,6 +12,9 @@ jobs:
       AWS_REGION: eu-west-2
       TF_WORKING_DIR: ./TERRA
       ANSIBLE_DIR: ./ANSIB
+      AWS_DEFAULT_REGION: eu-west-2
+      ANSIBLE_COLLECTIONS_PATHS: /home/runner/.ansible/collections:/usr/share/ansible/collections
+      ANSIBLE_CONFIG: ./ansible.cfg
 
     steps:
     - name: ✅ Checkout repo
@@ -25,76 +28,44 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: 🔧 Setup Terraform CLI
-      uses: hashicorp/setup-terraform@v2
+      uses: hashicorp/setup-terraform@v3
 
-    - name: 📂 Terraform Initialisation
-      run: terraform init
-      working-directory: ${{ env.TF_WORKING_DIR }}
-
+    - name: 📦 Terraform Initialisation
+      run: terraform -chdir=${{ env.TF_WORKING_DIR }} init
 
     - name: 🧹 Terraform Format Check
-      run: terraform fmt 
-      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: terraform -chdir=${{ env.TF_WORKING_DIR }} fmt -check
 
-    - name: 🔍 Terraform Validate
-      run: terraform validate
-      working-directory: ${{ env.TF_WORKING_DIR }}
+    - name: 🕵️ Terraform Validate
+      run: terraform -chdir=${{ env.TF_WORKING_DIR }} validate
 
     - name: 📊 Terraform Plan
-      run: terraform plan
-      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: terraform -chdir=${{ env.TF_WORKING_DIR }} plan
 
     - name: 🚀 Terraform Apply
-      run: terraform apply -auto-approve
-      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: terraform -chdir=${{ env.TF_WORKING_DIR }} apply -auto-approve
 
     - name: 📦 Capture Terraform Outputs
-      run: terraform output -json
-      working-directory: ${{ env.TF_WORKING_DIR }}
+      id: tfoutputs
+      run: terraform -chdir=${{ env.TF_WORKING_DIR }} output -json > outputs.json
 
-    
-    - name: 🔑 Inject SSH Key
-      run: |
-        mkdir -p ~/.ssh
-        echo "$SSH_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-      env:
-        SSH_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
-
-
-    # - name: 🐍 Install Python, Ansible & Collections
-    #   run: |
-    #     pip install ansible
-    #     ansible-galaxy collection install ansible.utils
-    #     ansible-galaxy collection list | grep ansible.utils || {
-    #       echo "❌ Collection ansible.utils not found after install."
-    #       exit 1
-    #     }
-    - name: 🐍 Install Ansible & Required Collections
+    - name: 🛠 Install Ansible & Required Collections
       run: |
         pip install --user ansible
         export PATH=$HOME/.local/bin:$PATH
+        export ANSIBLE_COLLECTIONS_PATHS=$HOME/.ansible/collections:/usr/share/ansible/collections
         ansible-galaxy collection install ansible.utils
         ansible-galaxy collection list | grep ansible.utils || {
-          echo "❌ Collection ansible.utils not found after install."
+          echo "❌ Collection not found"
           exit 1
         }
+
     - name: ⚙️ Create ansible.cfg
       run: |
-        echo "[defaults]" > ansible.cfg
-        echo "inventory = aws_ec2.yaml" >> ansible.cfg
-        echo "host_key_checking = False" >> ansible.cfg
+        echo '[defaults]' > ansible.cfg
+        echo "collection_paths = $ANSIBLE_COLLECTIONS_PATHS" >> ansible.cfg
 
-    - name: 📂 Run Ansible Playbook with Dynamic Inventory
-      working-directory: ${{ env.ANSIBLE_DIR }}
+    - name: 📦 Run Ansible Playbook with Dynamic Inventory
       run: |
         echo "Running Ansible Playbook..."
         ansible-playbook -i aws_ec2.yaml playbook.yaml
-      shell: /usr/bin/bash -e {0}
-      env:
-        AWS_REGION: ${{ env.AWS_REGION }}
-        AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        TF_WORKING_DIR: ${{ env.TF_WORKING_DIR }}
-        ANSIBLE_DIR: ${{ env.ANSIBLE_DIR }}

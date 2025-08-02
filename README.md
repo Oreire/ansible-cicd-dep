@@ -2,72 +2,103 @@
 Infrastructure Automation for EC2 Provisioning and Dockerized Application Deployment Using Terraform, Docker-Compose, Ansible, and AWS Dynamic Inventory
 
 
-- hosts: tag_Name_DevOpsEC2
-  become: true
+name: Infrastructure Automation and Deployment
 
-  vars:
-    app_dir: /home/ubuntu/myapp
-    docker_image_name: webapp:latest
-    exposed_port: 80
+on:
+  push:
+    branches: [ main ]
 
-  tasks:
-    - name: Install Docker
-      apt:
-        name: docker.io
-        state: present
-      notify: Start Docker
+jobs:
+  provision-deploy:
+    runs-on: ubuntu-latest
 
-    - name: Create application directory
-      file:
-        path: "{{ app_dir }}"
-        state: directory
-        owner: ubuntu
-        group: ubuntu
-        mode: '0755'
+    env:
+      AWS_REGION: eu-west-2
+      TF_WORKING_DIR: ./TERRA
+      ANSIBLE_DIR: ./ANSIB
 
-    - name: Copy Dockerfile and app source code
-      copy:
-        src: ../DOCKE/app/
-        dest: "{{ app_dir }}"
-        owner: ubuntu
-        group: ubuntu
-        mode: preserve
+    steps:
+    - name: ✅ Checkout repo
+      uses: actions/checkout@v3
 
-    - name: Build Docker image
-      command: docker build -t {{ docker_image_name }} .
-      args:
-        chdir: "{{ app_dir }}"
+    - name: 🔐 Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
 
-    - name: Run Docker container
-      command: >
-        docker run -d --name webapp_container
-        -p {{ exposed_port }}:{{ exposed_port }}
-        {{ docker_image_name }}
+    - name: 🔧 Setup Terraform CLI
+      uses: hashicorp/setup-terraform@v2
 
-  handlers:
-    - name: Start Docker
-      service:
-        name: docker
-        state: started
-        enabled: true
+    - name: 📂 Terraform Initialisation
+      run: terraform init
+      working-directory: ${{ env.TF_WORKING_DIR }}
 
 
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-          {
-            "Effect": "Allow",
-            "Action": "ec2:DescribeInstances",
-            "Resource": "*"
-          }
-          ]
+    - name: 🧹 Terraform Format Check
+      run: terraform fmt 
+      working-directory: ${{ env.TF_WORKING_DIR }}
+
+    - name: 🔍 Terraform Validate
+      run: terraform validate
+      working-directory: ${{ env.TF_WORKING_DIR }}
+
+    - name: 📊 Terraform Plan
+      run: terraform plan
+      working-directory: ${{ env.TF_WORKING_DIR }}
+
+    - name: 🚀 Terraform Apply
+      run: terraform apply -auto-approve
+      working-directory: ${{ env.TF_WORKING_DIR }}
+
+    - name: 📦 Capture Terraform Outputs
+      run: terraform output -json
+      working-directory: ${{ env.TF_WORKING_DIR }}
+
+    
+    - name: 🔑 Inject SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+      env:
+        SSH_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+
+
+    # - name: 🐍 Install Python, Ansible & Collections
+    #   run: |
+    #     pip install ansible
+    #     ansible-galaxy collection install ansible.utils
+    #     ansible-galaxy collection list | grep ansible.utils || {
+    #       echo "❌ Collection ansible.utils not found after install."
+    #       exit 1
+    #     }
+    - name: 🐍 Install Ansible & Required Collections
+      run: |
+        pip install --user ansible
+        export PATH=$HOME/.local/bin:$PATH
+        ansible-galaxy collection install ansible.utils
+        ansible-galaxy collection list | grep ansible.utils || {
+          echo "❌ Collection ansible.utils not found after install."
+          exit 1
         }
-        
-plugin: aws_ec2
-regions:
-  - eu-west-2
-filters:
-  tag:Name: DevOpsEC2
-keyed_groups:
-  - key: tags.Name
-    prefix: tag
+    - name: ⚙️ Create ansible.cfg
+      run: |
+        echo "[defaults]" > ansible.cfg
+        echo "inventory = aws_ec2.yaml" >> ansible.cfg
+        echo "host_key_checking = False" >> ansible.cfg
+
+    - name: 📂 Run Ansible Playbook with Dynamic Inventory
+      working-directory: ${{ env.ANSIBLE_DIR }}
+      run: |
+        echo "Running Ansible Playbook..."
+        ansible-playbook -i aws_ec2.yaml playbook.yaml
+      shell: /usr/bin/bash -e {0}
+      env:
+        AWS_REGION: ${{ env.AWS_REGION }}
+        AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        TF_WORKING_DIR: ${{ env.TF_WORKING_DIR }}
+        ANSIBLE_DIR: ${{ env.ANSIBLE_DIR }}
