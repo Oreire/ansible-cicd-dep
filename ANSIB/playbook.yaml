@@ -1,5 +1,5 @@
 ---
-- hosts: tag_Name_DevOpsEC2
+- hosts: DevOpsEC2
   become: true
   tasks:
     - name: Install Docker & Docker Compose

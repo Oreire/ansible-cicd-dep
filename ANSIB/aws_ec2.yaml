@@ -7,7 +7,7 @@ filters:
 
 keyed_groups:
   - key: tags.Name
-    prefix: ec2
+    prefix: tag
 
 hostnames:
   - ip-address
