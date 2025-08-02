@@ -19,7 +19,7 @@ resource "aws_instance" "web" {
 }
 tags = {
     Name        = "ansible-web-server"
-    Environment = "Dev"
+    
   }
   depends_on = [null_resource.prepare_ansible_dir]
 }
