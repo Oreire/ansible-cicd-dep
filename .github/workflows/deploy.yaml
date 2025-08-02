@@ -24,81 +24,58 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: 🔧 Setup Terraform
+    - name: 🔧 Setup Terraform CLI
       uses: hashicorp/setup-terraform@v2
 
-    - name: 📐 Terraform Format Check
+    - name: 🧹 Terraform Format Check
+      run: terraform fmt -check -recursive
       working-directory: ${{ env.TF_WORKING_DIR }}
-      run: terraform fmt 
 
-    - name: 🛠️ Terraform Init
-      working-directory: ${{ env.TF_WORKING_DIR }}
-      run: terraform init
-
-    - name: 🔎 Terraform Validate
-      working-directory: ${{ env.TF_WORKING_DIR }}
+    - name: 🔍 Terraform Validate
       run: terraform validate
+      working-directory: ${{ env.TF_WORKING_DIR }}
 
     - name: 📊 Terraform Plan
-      working-directory: ${{ env.TF_WORKING_DIR }}
       run: terraform plan
+      working-directory: ${{ env.TF_WORKING_DIR }}
 
     - name: 🚀 Terraform Apply
-      working-directory: ${{ env.TF_WORKING_DIR }}
       run: terraform apply -auto-approve
-
-    - name: 📤 Capture Terraform Outputs
-      id: tf_outputs
       working-directory: ${{ env.TF_WORKING_DIR }}
-      run: |
-        terraform output -json > tf_outputs.json
+
+    - name: 📦 Capture Terraform Outputs
+      run: terraform output -json
+      working-directory: ${{ env.TF_WORKING_DIR }}
 
     - name: 🔑 Inject SSH Key
+      run: echo "$SSH_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+      env:
+        SSH_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+
+    - name: 🐍 Install Python, Ansible & Collections
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.AWS_EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
+        pip install ansible
+        ansible-galaxy collection install ansible.utils
+        ansible-galaxy collection list | grep ansible.utils || {
+          echo "❌ Collection ansible.utils not found after install."
+          exit 1
+        }
 
-    - name: 🧰 Install Python, Ansible & Plugins
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3-pip ansible
-        pip3 install boto3 botocore
-        pipx inject ansible-core boto3 botocore
-
-        ansible-galaxy collection install amazon.aws
-        
-
-        # validate plugins
-    
-    - name: Validate Ansible Collections
-      run: |
-        echo "Installed collections:"
-        ansible-galaxy collection list
-
-
-    - name: 🗂️ Create Ansible Config (ansible.cfg)
-      working-directory: ${{ env.ANSIBLE_DIR }}
+    - name: ⚙️ Create ansible.cfg
       run: |
         echo "[defaults]" > ansible.cfg
-        echo "inventory = inventory/aws_ec2.yml" >> ansible.cfg
-        echo "private_key_file = ~/.ssh/id_rsa" >> ansible.cfg
+        echo "inventory = aws_ec2.yaml" >> ansible.cfg
         echo "host_key_checking = False" >> ansible.cfg
-        echo "gathering = smart" >> ansible.cfg
-        echo "[inventory]" >> ansible.cfg
-        echo "enabled = amazon.aws.aws_ec2" >> ansible.cfg
 
-    - name: 🧪 Run Ansible Playbook with Dynamic Inventory
-      working-directory: ${{ env.ANSIBLE_DIR }}
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: 📂 Run Ansible Playbook with Dynamic Inventory
       run: |
         echo "Running Ansible Playbook..."
         ansible-playbook -i aws_ec2.yaml playbook.yaml
-
-    
-    - name: ✅ Fail Fast Validation
-      if: failure()
-      run: echo "❌ Workflow failed. Investigate logs above."
-
+      shell: /usr/bin/bash -e {0}
+      env:
+        AWS_REGION: ${{ env.AWS_REGION }}
+        AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        TF_WORKING_DIR: ${{ env.TF_WORKING_DIR }}
+        ANSIBLE_DIR: ${{ env.ANSIBLE_DIR }}
