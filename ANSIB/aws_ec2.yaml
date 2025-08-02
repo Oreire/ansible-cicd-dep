@@ -4,13 +4,13 @@ regions:
 
 filters:
   tag:Name: DevOpsEC2
-  tag:Owner: ayomide
+
+hostnames:
+  - ip-address
 
 keyed_groups:
   - key: tags.Name
-  - key: tags.Owner
-    prefix: ""
+    prefix: tag
 
-hostnames:
-  - ip_address
+strict: False
 
