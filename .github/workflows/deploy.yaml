@@ -83,15 +83,9 @@ jobs:
       working-directory: ${{ env.ANSIBLE_DIR }}
       run: |
         echo "Running Ansible Playbook..."
-        ansible-playbook -i aws_ec2.yaml --inventory-plugin aws_ec2 playbook.yaml
+        ansible-playbook -i aws_ec2.yaml playbook.yaml
 
-        # Uncomment the following lines to capture and display the playbook output
-        # echo "Ansible Playbook Output:"
-    # - name: 📜 Ansible Playbook Output
-    #   run: |
-    #     echo "Ansible Playbook Output:"
-    #     cat inventory/aws_ec2.yml
-
+    
     - name: ✅ Fail Fast Validation
       if: failure()
       run: echo "❌ Workflow failed. Investigate logs above."
