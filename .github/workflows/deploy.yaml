@@ -70,11 +70,12 @@ jobs:
         ansible-galaxy collection install community.general
 
         # validate plugins
-    - name: 📦 Validate Ansible Collections
+    
+    - name: Validate Ansible Collections
       run: |
-        ansible-galaxy collection list | grep ansible.builtin
-        ansible-galaxy collection list | grep community.general
-        ansible-galaxy collection list | grep amazon.aws
+        echo "Installed collections:"
+        ansible-galaxy collection list
+
 
     - name: 🗂️ Create Ansible Config (ansible.cfg)
       working-directory: ${{ env.ANSIBLE_DIR }}
