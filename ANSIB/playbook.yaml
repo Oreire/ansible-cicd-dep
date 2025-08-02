@@ -1,13 +1,13 @@
 ---
 - name: Resilient Deployment Play
-  hosts: "{{ group_names | select('match', '^tag_Name_DevOpsEC2$') | list | default(['all']) }}"
+  hosts: tag_Name_DevOpsEC2
   become: true
   gather_facts: true
 
   tasks:
-    - name: Debug matched inventory hostnames
+    - name: Show host group membership
       debug:
-        var: inventory_hostname
+        var: group_names
 
     - name: Install Docker & Docker Compose
       apt:
