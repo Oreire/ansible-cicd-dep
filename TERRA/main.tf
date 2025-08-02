@@ -18,9 +18,9 @@ resource "aws_instance" "web" {
   command = "mkdir -p ../ansible && echo ${self.public_ip} > ../ansible/hosts.txt"
 }
 tags = {
-    Name        = "ansible-web-server"
+    Name        = "DevOpsEC2"
     Environment = "Staging"
-    AnsibleRole = "web"
+    group      = "web"
   }
   depends_on = [null_resource.prepare_ansible_dir]
 }
