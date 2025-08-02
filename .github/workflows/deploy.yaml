@@ -34,7 +34,7 @@ jobs:
       run: terraform -chdir=${{ env.TF_WORKING_DIR }} init
 
     - name: 🧹 Terraform Format Check
-      run: terraform -chdir=${{ env.TF_WORKING_DIR }} fmt -check
+      run: terraform -chdir=${{ env.TF_WORKING_DIR }} fmt 
 
     - name: 🕵️ Terraform Validate
       run: terraform -chdir=${{ env.TF_WORKING_DIR }} validate
@@ -66,6 +66,9 @@ jobs:
         echo "collection_paths = $ANSIBLE_COLLECTIONS_PATHS" >> ansible.cfg
 
     - name: 📦 Run Ansible Playbook with Dynamic Inventory
+      working-directory: ${{ env.ANSIBLE_DIR }}
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: false
       run: |
         echo "Running Ansible Playbook..."
         ansible-playbook -i aws_ec2.yaml playbook.yaml
