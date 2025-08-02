@@ -20,7 +20,7 @@ resource "aws_instance" "web" {
 tags = {
     Name        = "DevOpsEC2"
     Environment = "Staging"
-    group      = "web"
+    Owner      = "ayomide"
   }
   depends_on = [null_resource.prepare_ansible_dir]
 }

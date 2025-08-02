@@ -1,18 +1,12 @@
 plugin: aws_ec2
 regions:
   - eu-west-2
-
 filters:
   tag:Name: DevOpsEC2
-  tag:Group: web
-
 keyed_groups:
   - key: tags.Name
-  - key: tags.Group
-    prefix: ""
-
+    prefix: tag
 hostnames:
-  - ip_address
+  - ip-address
+strict: False
 
-
-  - public_ip_address
