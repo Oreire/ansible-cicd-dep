@@ -19,7 +19,8 @@ resource "aws_instance" "web" {
 }
 tags = {
     Name        = "ansible-web-server"
-    
+    Environment = "Staging"
+    AnsibleRole = "web"
   }
   depends_on = [null_resource.prepare_ansible_dir]
 }

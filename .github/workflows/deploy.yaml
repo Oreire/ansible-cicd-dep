@@ -80,7 +80,7 @@ jobs:
     - name: 🧪 Run Ansible Playbook with Dynamic Inventory
       working-directory: ${{ env.ANSIBLE_DIR }}
       run: |
-        ansible-playbook playbook.yaml
+        ansible-playbook -i aws_ec2.yml playbook.yaml
 
     - name: ✅ Fail Fast Validation
       if: failure()

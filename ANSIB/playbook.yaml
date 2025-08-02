@@ -1,3 +1,4 @@
+---
 - hosts: tag_Name_DevOpsEC2
   become: true
   tasks:
