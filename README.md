@@ -63,3 +63,11 @@ Infrastructure Automation for EC2 Provisioning and Dockerized Application Deploy
           ]
         }
         
+plugin: aws_ec2
+regions:
+  - eu-west-2
+filters:
+  tag:Name: DevOpsEC2
+keyed_groups:
+  - key: tags.Name
+    prefix: tag
