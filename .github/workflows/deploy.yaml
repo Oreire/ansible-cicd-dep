@@ -78,6 +78,7 @@ jobs:
         echo "host_key_checking = False" >> ansible.cfg
 
     - name: 📂 Run Ansible Playbook with Dynamic Inventory
+      working-directory: ${{ env.ANSIBLE_DIR }}
       run: |
         echo "Running Ansible Playbook..."
         ansible-playbook -i aws_ec2.yaml playbook.yaml
