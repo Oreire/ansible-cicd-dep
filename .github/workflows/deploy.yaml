@@ -13,7 +13,7 @@ jobs:
       TF_WORKING_DIR: ./TERRA
       ANSIBLE_DIR: ./ANSIB
       AWS_DEFAULT_REGION: eu-west-2
-      ANSIBLE_COLLECTIONS_PATHS: /home/runner/.ansible/collections:/usr/share/ansible/collections
+      ANSIBLE_COLLECTIONS_PATH: /home/runner/.ansible/collections:/usr/share/ansible/collections
       ANSIBLE_CONFIG: ./ansible.cfg
 
     steps:
@@ -60,10 +60,12 @@ jobs:
           exit 1
         }
 
+       
     - name: ⚙️ Create ansible.cfg
       run: |
         echo '[defaults]' > ansible.cfg
-        echo "collection_paths = $ANSIBLE_COLLECTIONS_PATHS" >> ansible.cfg
+        echo "collection_paths = $ANSIBLE_COLLECTIONS_PATH" >> ansible.cfg
+        echo "deprecation_warnings = False" >> ansible.cfg
 
     - name: 📦 Run Ansible Playbook with Dynamic Inventory
       working-directory: ${{ env.ANSIBLE_DIR }}
