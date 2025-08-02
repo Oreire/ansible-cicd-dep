@@ -81,8 +81,10 @@ jobs:
       working-directory: ${{ env.ANSIBLE_DIR }}
       run: |
         echo "Running Ansible Playbook..."
-        ansible-playbook -i inventory/aws_ec2.yml playbook.yaml 
+        ansible-playbook -i aws_ec2.yaml playbook.yaml
 
+        # Uncomment the following lines to capture and display the playbook output
+        # echo "Ansible Playbook Output:"
     # - name: 📜 Ansible Playbook Output
     #   run: |
     #     echo "Ansible Playbook Output:"
