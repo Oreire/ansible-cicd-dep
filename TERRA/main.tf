@@ -14,6 +14,8 @@ resource "aws_instance" "web" {
   instance_type          = var.instance_type
   key_name               = var.key_name
   associate_public_ip_address = true
+  vpc_security_group_ids = [aws_security_group.ansible_sg2.id]
+  subnet_id              = aws_subnet.main.id
   provisioner "local-exec" {
   command = "mkdir -p ../ansible && echo ${self.public_ip} > ../ansible/hosts.txt"
 }
@@ -25,8 +27,46 @@ tags = {
   depends_on = [null_resource.prepare_ansible_dir]
 }
 
+resource "aws_vpc" "main" {
+  cidr_block = var.vpc_cidr
+  enable_dns_support = true
+  enable_dns_hostnames = true
+  
+  tags = {
+    Name        = "MainVPC"
+    Environment = "Dev"
+  }
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+  tags = { Name = "main-igw" }
+}
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+}
+
+
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "eu-west-2a"
+  tags = { Name = "public-subnet" }
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public.id
+}
+ 
 resource "aws_security_group" "ansible_sg2" {
-  name        = "ansible_sg"
+  name        = "ansible_sg2"
   description = "Allow controlled HTTP and SSH access"
 
   ingress {
@@ -34,7 +74,7 @@ resource "aws_security_group" "ansible_sg2" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["192.0.2.0/32"] # Reserved for documentation/example; use real admin IP in production
+    cidr_blocks = ["203.0.113.14/32"]  # Reserved for documentation/example; use real admin IP in production
   }
 
   ingress {

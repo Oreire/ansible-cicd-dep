@@ -22,3 +22,9 @@ variable "key_name" {
   default     = "maven_key" # Consistency with your Ansible key config
 }
 
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+
+}
