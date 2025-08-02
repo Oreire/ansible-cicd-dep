@@ -1,12 +1,16 @@
 plugin: aws_ec2
 regions:
   - eu-west-2
+
 filters:
   tag:Name: DevOpsEC2
+  tag:Owner: ayomide
+
 keyed_groups:
   - key: tags.Name
-    prefix: tag
+  - key: tags.Owner
+    prefix: ""
+
 hostnames:
-  - ip-address
-strict: False
+  - ip_address
 
