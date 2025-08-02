@@ -13,3 +13,6 @@ keyed_groups:
 
 hostnames:
   - ip_address
+
+
+  - public_ip_address
