@@ -42,7 +42,7 @@ resource "aws_security_group" "ansible_sg2" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["192.168.1.0/24"] # Replace with real public-facing CIDR if needed
+    cidr_blocks = ["0.0.0.0/0"] # Replace with real public-facing CIDR if needed
   }
 
   egress {

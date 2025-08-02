@@ -51,6 +51,15 @@ jobs:
       id: tfoutputs
       run: terraform -chdir=${{ env.TF_WORKING_DIR }} output -json > outputs.json
 
+    - name: 🔑 Inject SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+      env:
+        SSH_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+
+
     - name: 🛠 Install Ansible & Required Collections
       run: |
         pip install --user ansible
