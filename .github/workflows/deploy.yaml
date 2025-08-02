@@ -62,15 +62,23 @@ jobs:
         SSH_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
 
 
-    - name: 🐍 Install Python, Ansible & Collections
+    # - name: 🐍 Install Python, Ansible & Collections
+    #   run: |
+    #     pip install ansible
+    #     ansible-galaxy collection install ansible.utils
+    #     ansible-galaxy collection list | grep ansible.utils || {
+    #       echo "❌ Collection ansible.utils not found after install."
+    #       exit 1
+    #     }
+    - name: 🐍 Install Ansible & Required Collections
       run: |
-        pip install ansible
+        pip install --user ansible
+        export PATH=$HOME/.local/bin:$PATH
         ansible-galaxy collection install ansible.utils
         ansible-galaxy collection list | grep ansible.utils || {
           echo "❌ Collection ansible.utils not found after install."
           exit 1
         }
-
     - name: ⚙️ Create ansible.cfg
       run: |
         echo "[defaults]" > ansible.cfg
