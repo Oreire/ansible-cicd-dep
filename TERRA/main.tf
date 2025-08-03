@@ -71,6 +71,7 @@ resource "aws_route_table_association" "public" {
 resource "aws_security_group" "ansible_sg2" {
   name        = "ansible_sg2"
   description = "Allow controlled HTTP and SSH access"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description = "SSH access for trusted admin"
