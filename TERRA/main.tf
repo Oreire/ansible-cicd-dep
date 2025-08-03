@@ -15,7 +15,7 @@ resource "aws_instance" "web" {
   key_name               = var.key_name
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.ansible_sg2.id]
-  subnet_id              = aws_subnet.main.id
+  subnet_id              = aws_subnet.public.id
   provisioner "local-exec" {
   command = "mkdir -p ../ansible && echo ${self.public_ip} > ../ansible/hosts.txt"
 }
@@ -52,7 +52,7 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_subnet" "main" {
+resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
