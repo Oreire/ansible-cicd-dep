@@ -104,3 +104,111 @@ jobs:
         ANSIBLE_DIR: ${{ env.ANSIBLE_DIR }}
 
 
+Main.tf
+
+# ✅ VPC Definition
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name        = "cicd-vpc"
+    Environment = "Dev"
+  }
+}
+
+# ✅ Internet Gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "cicd-igw"
+  }
+}
+
+# ✅ Public Subnet with IGW Route
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "eu-west-2a"
+  tags = {
+    Name = "cicd-public-subnet"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+  tags = {
+    Name = "cicd-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public.id
+}
+
+# ✅ SSH Security Group (CI-safe)
+resource "aws_security_group" "ssh" {
+  name        = "cicd-ssh-sg"
+  vpc_id      = aws_vpc.main.id
+  description = "Allow SSH and HTTP access"
+
+  ingress {
+    description = "SSH access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP access"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "cicd-sg"
+    Environment = "Dev"
+  }
+}
+
+# ✅ EC2 Instance with Tag for Ansible
+resource "aws_instance" "web" {
+  ami                    = "ami-08e2c1fc282d7f130"  # Ubuntu 22.04 LTS (eu-west-2)
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.public.id
+  associate_public_ip_address = true
+  key_name               = "your-keypair-name"  # Update this
+  vpc_security_group_ids = [aws_security_group.ssh.id]
+
+  tags = {
+    Name        = "DevOpsEC2"
+    Environment = "Dev"
+    Provisioned = "Terraform"
+  }
+}
+
+aws_ec2.yaml
+
+plugin: aws_ec2
+regions:
+  - eu-west-2
+filters:
+  tag:Name: DevOpsEC2
+hostnames:
+  - public-ip-address
+keyed_groups:
+  - key: tags.Name

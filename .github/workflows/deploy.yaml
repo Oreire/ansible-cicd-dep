@@ -78,6 +78,9 @@ jobs:
         echo "collection_paths = $ANSIBLE_COLLECTIONS_PATH" >> ansible.cfg
         echo "deprecation_warnings = False" >> ansible.cfg
 
+    - name: Pause for EC2 SSH readiness
+      run: sleep 60
+
     - name: 📦 Run Ansible Playbook with Dynamic Inventory
       working-directory: ${{ env.ANSIBLE_DIR }}
       env:

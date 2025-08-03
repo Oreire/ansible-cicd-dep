@@ -15,6 +15,7 @@ resource "aws_instance" "web" {
   key_name               = var.key_name
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.ansible_sg2.id]
+  availability_zone      = "eu-west-2a"
   subnet_id              = aws_subnet.public.id
   provisioner "local-exec" {
   command = "mkdir -p ../ansible && echo ${self.public_ip} > ../ansible/hosts.txt"
@@ -33,18 +34,22 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   
   tags = {
-    Name        = "MainVPC"
+    Name        = "CustomVPC"
     Environment = "Dev"
   }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
-  tags = { Name = "main-igw" }
+  tags = { Name = "custom-igw" }
 }
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
+  tags = {
+    Name        = "PublicRouteTable"
+   
+  }
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -58,7 +63,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
   availability_zone       = "eu-west-2a"
   tags = {
-    Name = "main-public-subnet"
+    Name = "custom-public-subnet"
   }
 }
 
@@ -78,7 +83,7 @@ resource "aws_security_group" "ansible_sg2" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["203.0.113.14/32"]  # Reserved for documentation/example; use real admin IP in production
+    cidr_blocks = ["0.0.0.0/0"]  # Reserved for documentation/example; use real admin IP in production
   }
 
   ingress {
